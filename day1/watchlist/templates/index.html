@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
-    <title>{{name}}'s WatchList</title>
+    <title>{{user.name}}'s WatchList</title>
 </head>
 <body>
     <h2>
         <img class='avator' src="{{url_for('static',filename='images/1.jpg')}}" alt="">
-        {{name}}'s WatchList
+        {{user.name}}'s WatchList
     </h2>
     {# 过滤器 变量|过滤器名 #}
     <p>总共{{movies|length}}个</p>
