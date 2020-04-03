@@ -2,8 +2,11 @@ import os
 import sys 
 
 from flask import Flask,render_template,flash,redirect,request,url_for
+from werkzeug.security import generate_password_hash,check_password_hash
 import click
 from flask_sqlalchemy import SQLAlchemy  # 导入扩展类
+from flask_login import LoginManager,UserMixin,login_user,logout_user,login_required
+
 
 WIN = sys.platform.startswith('win')
 if WIN:
@@ -17,12 +20,27 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path,'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False #关闭了对模型修改的监控
 app.config['SECRET_KEY'] = 'watchlist_dev'
+
 db = SQLAlchemy(app) #初始化拓展，传入程序实例app
+login_manager = LoginManager(app) #实例化登录拓展类
+@login_manager.user_loader
+def load_user(user_id):
+    user = User.query.get(int(user_id))
+    return user
+
 
 # models
-class User(db.Model):
+class User(db.Model,UserMixin):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(20))
+    username = db.Column(db.String(20))
+    password_hash = db.Column(db.String(128))
+
+    def set_password(self,password):
+        self.password_hash = generate_password_hash(password)
+    def validate_password(self,password):
+        return check_password_hash(self.password_hash,password)
+
 class Movie(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     title = db.Column(db.String(60))
@@ -77,6 +95,7 @@ def edit(movie_id):
 
 # 删除电影信息
 @app.route('/movie/delete/<int:movie_id>',methods=['POST'])
+@login_required
 def delete(movie_id):
     movie = Movie.query.get_or_404(movie_id)
     db.session.delete(movie)
@@ -84,6 +103,35 @@ def delete(movie_id):
     flash('删除成功')
     return redirect(url_for('index'))
 
+
+# 登录
+@app.route('/login',methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # 验证数据
+        if not username or not password:
+            flash('输入错误')
+            return redirect(url_for('login'))
+        # 和数据库中的信息进行比对验证
+        user = User.query.first()
+        if user.username == username and user.validate_password(password):
+            login_user(user)
+            flash('登陆成功')
+            return redirect(url_for('index'))
+        flash('用户名或者密码错误')
+        return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+# 登出
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('拜拜')
+    return redirect(url_for('index'))
 
 # 自定义命令
 # 新建data.db的数据库初始化命令
@@ -113,6 +161,25 @@ def forge():
 
     db.session.commit()
     click.echo('插入数据完成')
+
+# 生成管理员账号
+@app.cli.command()
+@click.option('--username',prompt=True,help='管理员账号')
+@click.option('--password',prompt=True,help='管理员密码',hide_input=True,confirmation_prompt=True)
+def admin(username,password):
+    db.create_all()
+    user = User.query.first()
+    if user is not None:
+        click.echo('更新用户信息')
+        user.username = username
+        user.set_password(password)
+    else:
+        click.echo('创建用户信息')
+        user = User(username=username,name='Admin')
+        user.set_password(password)
+        db.session.add(user)
+    db.session.commit()
+    click.echo('管理员创建完成')
 
 
 # 错误处理函数
