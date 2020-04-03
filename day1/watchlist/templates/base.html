@@ -13,6 +13,10 @@
         <img class='avator' src="{{url_for('static',filename='images/1.jpg')}}" alt="">
         {{user.name}}'s WatchList
     </h2>
+    {# 提示信息 #}
+    {% for message in get_flashed_messages() %}
+        <div class='alert'>{{ message }}</div>
+    {% endfor %}
     <nav>
         <ul>
             <li>
