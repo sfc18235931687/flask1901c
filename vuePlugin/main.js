@@ -16,13 +16,13 @@ exports.default = {
         });
         // 把item当做角度，计算sin、cos、tan值
         Vue.directive('sin', function (el, binding) {
-            el.innerHTML = Math.sin(binding.value);
+            el.innerHTML = Math.sin(binding.value * Math.PI / 180);
         });
         Vue.directive('cos', function (el, binding) {
-            el.innerHTML = Math.cos(binding.value);
+            el.innerHTML = Math.cos(binding.value * Math.PI / 180);
         });
         Vue.directive('tan', function (el, binding) {
-            el.innerHTML = Math.tan(binding.value);
+            el.innerHTML = Math.tan(binding.value * Math.PI / 180);
         });
     }
 };
