@@ -1,21 +1,20 @@
 <template>
     <div class='slider-wrapper' @mouseover="clearInv" @mouseout='runInv'>
-        <div v-show="index ==nowIndex" v-for="(imgUrl,index) in sliderImgList" :key='index' class="slider-item"  v-bind:class="['item'+index]"">
+        <!--轮播图区-->
+        <div  v-show="index ==nowIndex" v-for="(item,index) in sliderImgList" :key='index' class="slider-item"  v-bind:class="['item'+[index+1]]">
             <a href="" >
-                <img v-bind:src=imgUrl alt="">
+                <img v-bind:src=item.imgUrl alt="">
             </a>
         </div>
-    
-        
+        <!--图片标题-->
+        <h2 class='slider-title'>{{ sliderImgList[nowIndex].title}}</h2>
+        <!--上一张  下一张-->
+        <a v-on:click='preHandler' href='javascript:void(0)' class='btn pre-btn'>&lt;</a>
+        <a v-on:click='nextHandler' href='javascript:void(0)' class='btn next-btn'>&gt;</a>
         <!-- dots -->
         <ul class='slider-dots'>
-            <li>&lt;</li>
-            <li>1</li>
-            <li>2</li>
-            <li>3</li>
-            <li>4</li>
-            <li>&gt;</li>
-        </ul>
+            <li v-on:click='clickDots(index)' v-for='(item,index) in sliderImgList' :key='index'>{{ index+1 }}</li>
+        </ul>   
     </div>
 </template>
 
@@ -24,13 +23,44 @@ export default {
     data() {
         return {
             nowIndex:0,
-            sliderImgList : [require('../assets/tu1.jpg'),require('../assets/tu2.jpg'),require('../assets/tu3.png'),require('../assets/tu4.jpg')]
+            sliderImgList : [
+            {
+                imgUrl:require('../assets/tu1.jpg'),
+                title:'第一张'
+            },
+            {
+                imgUrl:require('../assets/tu2.jpg'),
+                title:'第二张'
+            },
+            {
+                imgUrl:require('../assets/tu3.png'),
+                title:'第三张'
+            },
+            {
+                imgUrl:require('../assets/tu4.jpg'),
+                title:'第四张'
+            },
+            ]
         }
     },
     methods:{
+        clickDots(index){
+            this.nowIndex = index
+        },
+        preHandler(){
+            this.nowIndex--;
+            if(this.nowIndex < 0){
+                this.nowIndex = 3
+            }
+            console.log(this.nowIndex)
+        },
+        nextHandler(){
+            this.autoPlay()
+            
+        },
         autoPlay(){
             this.nowIndex++;
-            if(this.nowIndex == 4){
+            if(this.nowIndex > 3){
                 this.nowIndex = 0
             }
         },
@@ -49,6 +79,9 @@ export default {
 </script>
 
 <style scoped>
+    *{
+        text-decoration:none;
+    }
     .slider-wrapper{
         width:900px;
         height:500px;
@@ -91,5 +124,35 @@ export default {
         line-height: 20px;
         opacity: 0.6;
         margin: 0 10px;
+    }
+    .btn{
+        width:40px;
+        height:50px;
+        background:#000;
+        color:#ffffff;
+        position:absolute;
+        z-index:300;
+        top:50%;
+        margin-top:-25px;
+        font-size:40px;
+        text-align:center;
+        line-height:50px;
+        opacity:0.6
+    }
+    .pre-btn{
+        left:10px;
+    }
+    .next-btn{
+        right:10px;
+    }
+    .slider-title{
+        position:absolute;
+        z-index:400;
+        bottom:10px;
+        left:10px;
+        font-size:18px;
+        color:#ffffff;
+        background: #000;
+        opacity: 0.6;
     }
 </style>
